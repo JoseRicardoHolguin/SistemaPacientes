@@ -8,11 +8,14 @@
 import SwiftUI
 
 struct ProfileView: View {
-    @State private var nombre = "Dra. / Dr. Apellido"
-    @State private var especialidad = "Especialidad"
-    @State private var telefono = "555-000-0000"
-    @State private var email = "doctor@clinica.com"
-    @State private var bio = "Breve descripción del perfil profesional."
+    @EnvironmentObject var profileStore: ProfileStore
+    @State private var draft: DoctorProfile = DoctorProfile(
+        nombre: "",
+        especialidad: "",
+        telefono: "",
+        email: "",
+        bio: ""
+    )
 
     var body: some View {
         Form {
@@ -27,9 +30,9 @@ struct ProfileView: View {
                             .foregroundStyle(.tint)
                     }
                     VStack(alignment: .leading, spacing: 6) {
-                        TextField("Nombre", text: $nombre)
+                        TextField("Nombre", text: $draft.nombre)
                             .font(.headline)
-                        TextField("Especialidad", text: $especialidad)
+                        TextField("Especialidad", text: $draft.especialidad)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -37,16 +40,16 @@ struct ProfileView: View {
             }
 
             Section("Contacto") {
-                TextField("Teléfono", text: $telefono)
+                TextField("Teléfono", text: $draft.telefono)
                     .keyboardType(.phonePad)
-                TextField("Email", text: $email)
+                TextField("Email", text: $draft.email)
                     .keyboardType(.emailAddress)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
             }
 
             Section("Acerca de") {
-                TextEditor(text: $bio)
+                TextEditor(text: $draft.bio)
                     .frame(minHeight: 120)
             }
 
@@ -60,11 +63,23 @@ struct ProfileView: View {
         }
         .navigationTitle("Perfil")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            draft = profileStore.profile
+        }
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Guardar") {
+                    profileStore.update(draft)
+                }
+                .disabled(draft.nombre.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+        }
     }
 }
 
 #Preview {
     NavigationStack {
         ProfileView()
+            .environmentObject(ProfileStore())
     }
 }

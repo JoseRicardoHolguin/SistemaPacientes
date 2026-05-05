@@ -8,7 +8,10 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var store = PatientStore()
+    @StateObject private var patientStore = PatientStore()
+    @StateObject private var appointmentsStore = AppointmentsStore()
+    @StateObject private var profileStore = ProfileStore()
+
     @State private var isLoggedIn = false
     @State private var selectedTab: Tab = .patients
 
@@ -24,6 +27,8 @@ struct ContentView: View {
                 TabView(selection: $selectedTab) {
                     NavigationStack {
                         CitasView()
+                            .environmentObject(appointmentsStore)
+                            .environmentObject(patientStore)
                     }
                     .tabItem {
                         Label("Citas", systemImage: "calendar")
@@ -32,7 +37,7 @@ struct ContentView: View {
 
                     NavigationStack {
                         PatientsListView()
-                            .environmentObject(store)
+                            .environmentObject(patientStore)
                     }
                     .tabItem {
                         Label("Pacientes", systemImage: "person.3")
@@ -41,6 +46,7 @@ struct ContentView: View {
 
                     NavigationStack {
                         ProfileView()
+                            .environmentObject(profileStore)
                     }
                     .tabItem {
                         Label("Perfil", systemImage: "person.crop.circle")
