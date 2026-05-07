@@ -29,6 +29,7 @@ struct ContentView: View {
                         CitasView()
                             .environmentObject(appointmentsStore)
                             .environmentObject(patientStore)
+                            .environment(\.selectedTab, $selectedTab) // inyectamos binding
                     }
                     .tabItem {
                         Label("Citas", systemImage: "calendar")
@@ -38,6 +39,7 @@ struct ContentView: View {
                     NavigationStack {
                         PatientsListView()
                             .environmentObject(patientStore)
+                            .environment(\.selectedTab, $selectedTab)
                     }
                     .tabItem {
                         Label("Pacientes", systemImage: "person.3")
@@ -47,6 +49,7 @@ struct ContentView: View {
                     NavigationStack {
                         ProfileView()
                             .environmentObject(profileStore)
+                            .environment(\.selectedTab, $selectedTab)
                     }
                     .tabItem {
                         Label("Perfil", systemImage: "person.crop.circle")
@@ -68,3 +71,4 @@ struct ContentView: View {
 #Preview {
     ContentView()
 }
+

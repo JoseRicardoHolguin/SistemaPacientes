@@ -24,8 +24,14 @@ struct Patient: Identifiable, Codable, Equatable, Hashable {
     var diagnostico: String
     var proximaCita: Date?
     var notas: String
-    // Guardamos solo un identificador/nombre de imagen por simplicidad (placeholder si no hay)
+    // Placeholder por SF Symbol cuando no hay imagen real
     var fotoSystemName: String?
+
+    // Fotos adjuntas a notas
+    var fotos: [Data] = []
+
+    // Foto de perfil real (opcional)
+    var profilePhotoData: Data? = nil
 
     static let example = Patient(
         nombre: "Juan Pérez",
@@ -34,6 +40,8 @@ struct Patient: Identifiable, Codable, Equatable, Hashable {
         diagnostico: "Revisión general",
         proximaCita: Calendar.current.date(byAdding: .day, value: 7, to: Date()),
         notas: "Paciente refiere dolor leve.",
-        fotoSystemName: "person.crop.circle"
+        fotoSystemName: "person.crop.circle",
+        fotos: [],
+        profilePhotoData: nil
     )
 }

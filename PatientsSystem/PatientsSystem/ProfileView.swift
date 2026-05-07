@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ProfileView: View {
     @EnvironmentObject var profileStore: ProfileStore
+    @Environment(\.selectedTab) private var selectedTab
     @State private var draft: DoctorProfile = DoctorProfile(
         nombre: "",
         especialidad: "",
@@ -67,6 +68,15 @@ struct ProfileView: View {
             draft = profileStore.profile
         }
         .toolbar {
+            // Flecha personalizada porque esta vista es raíz
+            ToolbarItem(placement: .cancellationAction) {
+                Button {
+                    selectedTab?.wrappedValue = .patients
+                } label: {
+                    Image(systemName: "chevron.left")
+                }
+                .accessibilityLabel("Regresar")
+            }
             ToolbarItem(placement: .confirmationAction) {
                 Button("Guardar") {
                     profileStore.update(draft)

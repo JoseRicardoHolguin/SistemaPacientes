@@ -9,6 +9,7 @@ import SwiftUI
 
 struct PatientsListView: View {
     @EnvironmentObject var store: PatientStore
+    @Environment(\.selectedTab) private var selectedTab
     @State private var showingNewPatient = false
     @State private var searchText = ""
 
@@ -41,6 +42,14 @@ struct PatientsListView: View {
         .navigationTitle("Pacientes")
         .searchable(text: $searchText, prompt: "Buscar por nombre, estatus, diagnóstico…")
         .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button {
+                    selectedTab?.wrappedValue = .appointments
+                } label: {
+                    Image(systemName: "chevron.left")
+                }
+                .accessibilityLabel("Regresar")
+            }
             ToolbarItem(placement: .primaryAction) {
                 Button {
                     showingNewPatient = true
@@ -75,11 +84,19 @@ private struct PatientRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: patient.fotoSystemName ?? "person.crop.circle")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 40, height: 40)
-                .foregroundStyle(.secondary)
+            if let data = patient.profilePhotoData, let ui = UIImage(data: data) {
+                Image(uiImage: ui)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 40, height: 40)
+                    .clipShape(Circle())
+            } else {
+                Image(systemName: patient.fotoSystemName ?? "person.crop.circle")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 40, height: 40)
+                    .foregroundStyle(.secondary)
+            }
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(patient.nombre.isEmpty ? "Sin nombre" : patient.nombre)

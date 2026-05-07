@@ -10,12 +10,13 @@ import SwiftUI
 struct CitasView: View {
     @EnvironmentObject var appointmentsStore: AppointmentsStore
     @EnvironmentObject var patientStore: PatientStore
+    @Environment(\.selectedTab) private var selectedTab
 
     @State private var showingNewAppointment = false
     @State private var searchText = ""
 
-    private var filteredAppointments: [Appointment] {
-        let base = appointmentsStore.appointments
+    private var todaysAppointments: [Appointment] {
+        let base = appointmentsStore.appointments(onSameDayAs: Date())
         guard !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             return base.sorted { $0.fecha < $1.fecha }
         }
@@ -33,21 +34,35 @@ struct CitasView: View {
 
     var body: some View {
         List {
-            ForEach(filteredAppointments) { appt in
-                NavigationLink {
-                    AppointmentDetailView(appointment: appt)
-                } label: {
-                    AppointmentRow(appointment: appt,
-                                   patient: appt.patientId.flatMap { id in
-                                       patientStore.patients.first(where: { $0.id == id })
-                                   })
+            if todaysAppointments.isEmpty {
+                ContentUnavailableView("Sin citas hoy",
+                                       systemImage: "calendar.badge.exclamationmark",
+                                       description: Text("No hay citas programadas para hoy."))
+            } else {
+                ForEach(todaysAppointments) { appt in
+                    NavigationLink {
+                        AppointmentDetailView(appointment: appt)
+                    } label: {
+                        AppointmentRow(appointment: appt,
+                                       patient: appt.patientId.flatMap { id in
+                                           patientStore.patients.first(where: { $0.id == id })
+                                       })
+                    }
                 }
+                .onDelete(perform: appointmentsStore.remove)
             }
-            .onDelete(perform: appointmentsStore.remove)
         }
-        .navigationTitle("Citas")
-        .searchable(text: $searchText, prompt: "Buscar por título, paciente, estado…")
+        .navigationTitle("Citas de hoy")
+        .searchable(text: $searchText, prompt: "Buscar por paciente, título, estado…")
         .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button {
+                    selectedTab?.wrappedValue = .patients
+                } label: {
+                    Image(systemName: "chevron.left")
+                }
+                .accessibilityLabel("Regresar")
+            }
             ToolbarItem(placement: .primaryAction) {
                 Button {
                     showingNewAppointment = true
@@ -80,13 +95,14 @@ private struct AppointmentRow: View {
                 .frame(width: 28)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(appointment.titulo)
+                // Título: nombre del paciente o "Sin asignar"
+                Text((patient?.nombre.isEmpty == false ? patient!.nombre : "Sin asignar"))
                     .font(.headline)
+
+                // Subtítulo: hora
                 HStack(spacing: 8) {
-                    Text(appointment.fecha.formatted(date: .abbreviated, time: .shortened))
-                    if let name = patient?.nombre, !name.isEmpty {
-                        Text("• \(name)")
-                    }
+                    Text(appointment.fecha.formatted(date: .omitted, time: .shortened))
+                    Text("• \(appointment.titulo)")
                 }
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
@@ -165,9 +181,6 @@ private struct AppointmentDetailView: View {
         .navigationTitle("Cita")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Cancelar") { dismiss() }
-            }
             ToolbarItem(placement: .confirmationAction) {
                 Button("Guardar") {
                     appointmentsStore.update(draft)
@@ -219,10 +232,8 @@ private struct NewAppointmentView: View {
                     .frame(minHeight: 120)
             }
         }
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Cancelar") { dismiss() }
-            }
             ToolbarItem(placement: .confirmationAction) {
                 Button("Guardar") {
                     let appt = Appointment(
