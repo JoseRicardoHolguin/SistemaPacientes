@@ -69,14 +69,6 @@ struct CitasView: View {
         .navigationTitle(showAll ? "Citas" : "Citas de hoy")
         .searchable(text: $searchText, prompt: "Buscar por paciente, título, estado…")
         .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button {
-                    selectedTab?.wrappedValue = .patients
-                } label: {
-                    Image(systemName: "chevron.left")
-                }
-                .accessibilityLabel("Regresar")
-            }
             ToolbarItem(placement: .navigationBarLeading) {
                 Toggle(isOn: $showAll) {
                     Text("Todas")

@@ -42,14 +42,6 @@ struct PatientsListView: View {
         .navigationTitle("Pacientes")
         .searchable(text: $searchText, prompt: "Buscar por nombre, estatus, diagnóstico…")
         .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button {
-                    selectedTab?.wrappedValue = .appointments
-                } label: {
-                    Image(systemName: "chevron.left")
-                }
-                .accessibilityLabel("Regresar")
-            }
             ToolbarItem(placement: .primaryAction) {
                 Button {
                     showingNewPatient = true
