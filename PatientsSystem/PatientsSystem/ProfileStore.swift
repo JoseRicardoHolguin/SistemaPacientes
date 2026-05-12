@@ -15,6 +15,8 @@ struct DoctorProfile: Codable, Equatable {
     var telefono: String
     var email: String
     var bio: String
+    // Nueva propiedad para foto de perfil del doctor
+    var profilePhotoData: Data? = nil
 }
 
 final class ProfileStore: ObservableObject {
@@ -23,7 +25,8 @@ final class ProfileStore: ObservableObject {
         especialidad: "Odontología",
         telefono: "555-000-0000",
         email: "doctor@clinica.com",
-        bio: "Breve descripción del perfil profesional."
+        bio: "Breve descripción del perfil profesional.",
+        profilePhotoData: nil
     )
 
     func update(_ newProfile: DoctorProfile) {

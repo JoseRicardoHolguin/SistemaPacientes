@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 struct ContentView: View {
     @StateObject private var patientStore = PatientStore()
@@ -14,6 +15,9 @@ struct ContentView: View {
 
     @State private var isLoggedIn = false
     @State private var selectedTab: Tab = .patients
+
+    // Mantener referencias a los AnyCancellable del sincronizador
+    @State private var cancellables: Set<AnyCancellable> = []
 
     enum Tab: Hashable {
         case appointments
@@ -56,6 +60,7 @@ struct ContentView: View {
                     }
                     .tag(Tab.profile)
                 }
+                .onAppear(perform: setupSync)
             } else {
                 NavigationStack {
                     LoginView(onContinue: {
@@ -66,9 +71,44 @@ struct ContentView: View {
             }
         }
     }
+
+    private func setupSync() {
+        guard cancellables.isEmpty else { return }
+
+        patientStore.$patients
+            .receive(on: DispatchQueue.main)
+            .sink { [weak appointmentsStore] patients in
+                guard let appointmentsStore else { return }
+
+                let calendar = Calendar.current
+                let today = Date()
+
+                for patient in patients {
+                    guard let next = patient.proximaCita,
+                          calendar.isDate(next, inSameDayAs: today) else { continue }
+
+                    let alreadyExists = appointmentsStore.appointments.contains {
+                        $0.patientId == patient.id && calendar.isDate($0.fecha, inSameDayAs: today)
+                    }
+
+                    if !alreadyExists {
+                        let newAppointment = Appointment(
+                            titulo: patient.nombre.isEmpty ? "Consulta" : "Consulta de \(patient.nombre)",
+                            fecha: next,
+                            notas: nil,
+                            estado: .pendiente,
+                            patientId: patient.id
+                        )
+                        appointmentsStore.add(newAppointment)
+                    }
+                }
+
+                // Limpieza opcional comentada por seguridad (ver explicación previa)
+            }
+            .store(in: &cancellables)
+    }
 }
 
 #Preview {
     ContentView()
 }
-
