@@ -111,9 +111,20 @@ private struct AppointmentRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: "calendar.badge.clock")
-                .foregroundStyle(.tint)
-                .frame(width: 28)
+            // Foto del paciente (o icono) en lugar del icono de calendario
+            if let data = patient?.profilePhotoData, let ui = UIImage(data: data) {
+                Image(uiImage: ui)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 40, height: 40)
+                    .clipShape(Circle())
+            } else {
+                Image(systemName: patient?.fotoSystemName ?? "person.crop.circle")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 40, height: 40)
+                    .foregroundStyle(.secondary)
+            }
 
             VStack(alignment: .leading, spacing: 4) {
                 // Título: nombre del paciente o "Sin asignar"
