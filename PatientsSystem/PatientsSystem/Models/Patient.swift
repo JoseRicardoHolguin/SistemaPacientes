@@ -18,6 +18,10 @@ enum PatientStatus: String, CaseIterable, Identifiable, Codable, Hashable {
 
 struct Patient: Identifiable, Codable, Equatable, Hashable {
     var id: UUID = UUID()
+
+    // Identificador del dueño (doctor)
+    var ownerDoctorId: UUID
+
     var nombre: String
     var celular: String
     var estatus: PatientStatus
@@ -33,15 +37,19 @@ struct Patient: Identifiable, Codable, Equatable, Hashable {
     // Foto de perfil real (opcional)
     var profilePhotoData: Data? = nil
 
-    static let example = Patient(
-        nombre: "Juan Pérez",
-        celular: "555-123-4567",
-        estatus: .enCurso,
-        diagnostico: "Revisión general",
-        proximaCita: Calendar.current.date(byAdding: .day, value: 7, to: Date()),
-        notas: "Paciente refiere dolor leve.",
-        fotoSystemName: "person.crop.circle",
-        fotos: [],
-        profilePhotoData: nil
-    )
+    static func example(with ownerId: UUID = UUID()) -> Patient {
+        Patient(
+            ownerDoctorId: ownerId,
+            nombre: "Juan Pérez",
+            celular: "555-123-4567",
+            estatus: .enCurso,
+            diagnostico: "Revisión general",
+            proximaCita: Calendar.current.date(byAdding: .day, value: 7, to: Date()),
+            notas: "Paciente refiere dolor leve.",
+            fotoSystemName: "person.crop.circle",
+            fotos: [],
+            profilePhotoData: nil
+        )
+    }
 }
+

@@ -18,17 +18,25 @@ enum AppointmentStatus: String, CaseIterable, Identifiable, Codable, Hashable {
 
 struct Appointment: Identifiable, Codable, Hashable {
     var id: UUID = UUID()
+
+    // Identificador del dueño (doctor)
+    var ownerDoctorId: UUID
+
     var titulo: String
     var fecha: Date
     var notas: String?
     var estado: AppointmentStatus
     var patientId: UUID?
 
-    static let example = Appointment(
-        titulo: "Consulta de control",
-        fecha: Date().addingTimeInterval(3600 * 24),
-        notas: "Revisar radiografías",
-        estado: .pendiente,
-        patientId: nil
-    )
+    static func example(with ownerId: UUID = UUID()) -> Appointment {
+        Appointment(
+            ownerDoctorId: ownerId,
+            titulo: "Consulta de control",
+            fecha: Date().addingTimeInterval(3600 * 24),
+            notas: "Revisar radiografías",
+            estado: .pendiente,
+            patientId: nil
+        )
+    }
 }
+

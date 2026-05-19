@@ -27,12 +27,18 @@ struct PatientsListView: View {
 
     var body: some View {
         List {
-            ForEach(filteredPatients) { patient in
-                NavigationLink(value: patient) {
-                    PatientRow(patient: patient)
+            if filteredPatients.isEmpty {
+                ContentUnavailableView("No hay pacientes registrados",
+                                       systemImage: "person.3.sequence",
+                                       description: Text("Agrega tu primer paciente con el botón +"))
+            } else {
+                ForEach(filteredPatients) { patient in
+                    NavigationLink(value: patient) {
+                        PatientRow(patient: patient)
+                    }
                 }
+                .onDelete(perform: store.remove)
             }
-            .onDelete(perform: store.remove)
         }
         .navigationDestination(for: Patient.self) { patient in
             PatientDetailView(patient: patient) { updated in
@@ -54,6 +60,7 @@ struct PatientsListView: View {
         .sheet(isPresented: $showingNewPatient) {
             NavigationStack {
                 PatientDetailView(patient: Patient(
+                    ownerDoctorId: UUID(), // será reemplazado al guardar en el store
                     nombre: "",
                     celular: "",
                     estatus: .nuevo,
@@ -62,7 +69,7 @@ struct PatientsListView: View {
                     notas: "",
                     fotoSystemName: nil
                 )) { newPatient in
-                    store.add(newPatient)
+                    store.add(newPatient) // el store asigna ownerDoctorId correcto
                 }
                 .navigationTitle("Nuevo paciente")
                 .navigationBarTitleDisplayMode(.inline)
@@ -110,3 +117,4 @@ private struct PatientRow: View {
             .environmentObject(PatientStore())
     }
 }
+

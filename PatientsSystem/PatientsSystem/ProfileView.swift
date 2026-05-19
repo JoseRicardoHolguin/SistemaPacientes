@@ -25,6 +25,9 @@ struct ProfileView: View {
     // Picker de foto de perfil del doctor
     @State private var profilePickerItem: PhotosPickerItem? = nil
 
+    // Popup de guardado
+    @State private var showSaved = false
+
     var body: some View {
         Form {
             Section {
@@ -101,9 +104,7 @@ struct ProfileView: View {
 
             Section {
                 Button(role: .destructive) {
-                    // Guardamos por si hay cambios pendientes
                     profileStore.update(draft)
-                    // Regresamos a la pantalla de inicio de sesión
                     isLoggedInBinding?.wrappedValue = false
                 } label: {
                     Label("Cerrar sesión", systemImage: "rectangle.portrait.and.arrow.right")
@@ -115,13 +116,23 @@ struct ProfileView: View {
         .onAppear {
             draft = profileStore.profile
         }
+        // Si el perfil publicado cambia (por cambio de usuario), sincroniza el draft
+        .onReceive(profileStore.$profile) { newProfile in
+            draft = newProfile
+        }
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Guardar") {
                     profileStore.update(draft)
+                    showSaved = true
                 }
                 .disabled(draft.nombre.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
+        }
+        .alert("Guardado", isPresented: $showSaved) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Tu perfil se guardó correctamente.")
         }
     }
 }

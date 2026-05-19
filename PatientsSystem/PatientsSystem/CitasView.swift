@@ -96,7 +96,6 @@ struct CitasView: View {
         }
     }
 
-    // Mapea índices de la lista filtrada al arreglo real del store para evitar crashes
     private func deleteAppointments(at offsets: IndexSet) {
         let itemsToDelete = offsets.map { filteredAppointments[$0].id }
         appointmentsStore.appointments.removeAll { appt in
@@ -111,7 +110,6 @@ private struct AppointmentRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            // Foto del paciente (o icono) en lugar del icono de calendario
             if let data = patient?.profilePhotoData, let ui = UIImage(data: data) {
                 Image(uiImage: ui)
                     .resizable()
@@ -127,11 +125,9 @@ private struct AppointmentRow: View {
             }
 
             VStack(alignment: .leading, spacing: 4) {
-                // Título: nombre del paciente o "Sin asignar"
                 Text(patient?.nombre.nonEmpty ?? "Sin asignar")
                     .font(.headline)
 
-                // Subtítulo: hora + título de la cita
                 HStack(spacing: 8) {
                     Text(appointment.fecha.formatted(date: .abbreviated, time: .shortened))
                     if !appointment.titulo.isEmpty {
@@ -166,7 +162,6 @@ private struct AppointmentRow: View {
     }
 }
 
-// Vista de detalle enriquecido: datos de la cita, historial del paciente y fotos del paciente
 private struct AppointmentFullDetailView: View {
     @EnvironmentObject var appointmentsStore: AppointmentsStore
     @EnvironmentObject var patientStore: PatientStore
@@ -196,17 +191,9 @@ private struct AppointmentFullDetailView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-
-                // Encabezado: Paciente + fecha/estado
                 headerSection
-
-                // Información editable de la cita
                 infoSection
-
-                // Historial de citas del paciente
                 historySection
-
-                // Fotos del paciente (solo lectura)
                 photosSection
             }
             .padding(.horizontal)
@@ -285,7 +272,6 @@ private struct AppointmentFullDetailView: View {
                            displayedComponents: [.date, .hourAndMinute])
                     .environment(\.locale, Locale(identifier: "es_MX"))
 
-                // Asignar/ cambiar paciente
                 Picker("Paciente", selection: Binding<UUID?>(
                     get: { draft.patientId },
                     set: { draft.patientId = $0 }
@@ -296,7 +282,6 @@ private struct AppointmentFullDetailView: View {
                     }
                 }
 
-                // Notas / Tratamiento (reutilizamos notas)
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Notas / Tratamiento")
                         .font(.subheadline)
@@ -431,7 +416,9 @@ private struct NewAppointmentView: View {
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Guardar") {
+                    // ownerDoctorId se asignará en AppointmentsStore.add
                     let appt = Appointment(
+                        ownerDoctorId: UUID(),
                         titulo: titulo,
                         fecha: fecha,
                         notas: notas.isEmpty ? nil : notas,
@@ -447,7 +434,6 @@ private struct NewAppointmentView: View {
     }
 }
 
-// Pequeña ayuda para strings opcionales vacíos
 private extension String {
     var nonEmpty: String? { isEmpty ? nil : self }
 }
@@ -459,3 +445,4 @@ private extension String {
             .environmentObject(PatientStore())
     }
 }
+

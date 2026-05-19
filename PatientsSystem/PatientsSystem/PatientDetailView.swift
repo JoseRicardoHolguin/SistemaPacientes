@@ -257,6 +257,7 @@ private struct ImagePreviewView: View {
 
 #Preview {
     NavigationStack {
-        PatientDetailView(patient: .example) { _ in }
+        PatientDetailView(patient: .example(with: UUID())) { _ in }
     }
 }
+

@@ -10,38 +10,85 @@ import Combine
 import SwiftUI
 
 final class PatientStore: ObservableObject {
-    @Published var patients: [Patient] = [
-        .example,
-        Patient(
-            nombre: "María López",
-            celular: "555-987-6543",
-            estatus: .nuevo,
-            diagnostico: "Primera consulta",
-            proximaCita: Calendar.current.date(byAdding: .day, value: 3, to: Date()),
-            notas: "Traer estudios previos.",
-            fotoSystemName: "person.crop.circle.fill"
-        ),
-        Patient(
-            nombre: "Carlos Ruiz",
-            celular: "555-111-2222",
-            estatus: .finalizado,
-            diagnostico: "Tratamiento concluido",
-            proximaCita: nil,
-            notas: "Dar seguimiento por teléfono.",
-            fotoSystemName: "person.crop.circle"
-        )
-    ]
+    // Fuente de verdad completa (todos los doctores)
+    @Published private(set) var allPatients: [Patient] = [] {
+        didSet { saveToDisk() }
+    }
+
+    // Vista filtrada para el doctor actual
+    @Published var patients: [Patient] = []
+
+    private var cancellables: Set<AnyCancellable> = []
+    private weak var session: SessionStore?
+
+    init(session: SessionStore? = nil) {
+        self.session = session
+        loadFromDisk()
+        bindSession()
+    }
+
+    func attachSession(_ session: SessionStore) {
+        self.session = session
+        bindSession()
+        refilter()
+    }
+
+    private func bindSession() {
+        session?.$currentDoctorId
+            .sink { [weak self] _ in
+                self?.refilter()
+            }
+            .store(in: &cancellables)
+    }
+
+    private func refilter() {
+        guard let owner = session?.currentDoctorId else {
+            patients = []
+            return
+        }
+        patients = allPatients.filter { $0.ownerDoctorId == owner }
+    }
+
+    private func loadFromDisk() {
+        do {
+            let loaded: [Patient] = try PersistenceService.load([Patient].self, from: .patients)
+            allPatients = loaded
+        } catch {
+            allPatients = []
+        }
+        refilter()
+    }
+
+    private func saveToDisk() {
+        do {
+            try PersistenceService.save(allPatients, to: .patients)
+        } catch {
+            // En un MVP, podemos imprimir; en producción, manejar error
+            print("Error guardando pacientes: \(error)")
+        }
+    }
 
     func add(_ patient: Patient) {
-        patients.append(patient)
+        guard let owner = session?.currentDoctorId else { return }
+        var p = patient
+        p.ownerDoctorId = owner // forzamos el dueño actual
+        allPatients.append(p)
+        refilter()
     }
 
     func update(_ patient: Patient) {
-        guard let idx = patients.firstIndex(where: { $0.id == patient.id }) else { return }
-        patients[idx] = patient
+        guard let owner = session?.currentDoctorId else { return }
+        guard let idx = allPatients.firstIndex(where: { $0.id == patient.id }) else { return }
+        var p = patient
+        p.ownerDoctorId = owner // mantenemos el dueño actual
+        allPatients[idx] = p
+        refilter()
     }
 
     func remove(at offsets: IndexSet) {
-        patients.remove(atOffsets: offsets)
+        let ids = offsets.map { patients[$0].id }
+        allPatients.removeAll { ids.contains($0.id) }
+        refilter()
     }
 }
+
