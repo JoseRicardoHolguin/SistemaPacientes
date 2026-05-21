@@ -39,6 +39,7 @@ struct ContentView: View {
                     }
                     .tabItem { Label("Citas", systemImage: "calendar") }
                     .tag(Tab.appointments)
+                    .onAppear { resetIdleTimers() }
 
                     NavigationStack {
                         PatientsListView()
@@ -47,6 +48,7 @@ struct ContentView: View {
                     }
                     .tabItem { Label("Pacientes", systemImage: "person.3") }
                     .tag(Tab.patients)
+                    .onAppear { resetIdleTimers() }
 
                     NavigationStack {
                         ProfileView()
@@ -59,6 +61,7 @@ struct ContentView: View {
                     }
                     .tabItem { Label("Perfil", systemImage: "person.crop.circle") }
                     .tag(Tab.profile)
+                    .onAppear { resetIdleTimers() }
                 }
                 .onAppear {
                     // Adjuntar sesión a stores
@@ -73,13 +76,11 @@ struct ContentView: View {
                 .onDisappear {
                     cancelIdleTimers()
                 }
-                // Reinicia inactividad ante cualquier toque/drag
-                .simultaneousGesture(
-                    DragGesture(minimumDistance: 0).onChanged { _ in
-                        resetIdleTimers()
-                    }
-                )
-                // Observa cambios de estado de la escena
+                // Cambiar de tab es actividad
+                .onChange(of: selectedTab) { _, _ in
+                    resetIdleTimers()
+                }
+                // Cambios de estado de la escena
                 .onChange(of: scenePhase) { _, newPhase in
                     switch newPhase {
                     case .active:
@@ -216,3 +217,4 @@ struct ContentView: View {
 #Preview {
     ContentView()
 }
+
